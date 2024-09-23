@@ -1,0 +1,107 @@
+/*************************
+    COMMON RULES
+ *************************/
+
+h4.ywsbs-title-section {
+    padding: 12px;
+    font-size: 1.1em;
+    margin: 0;
+}
+
+.yith-plugin-ui span.description,
+.ywsbs-general-section span.description {
+    display: block;
+    clear: left;
+    font-style: normal;
+    font-size: 1em;
+    line-height: 1.4em;
+    padding-top: 10px;
+    margin: 0;
+}
+
+#variable_product_options .form-row select.yith-short-select,
+.yith-short-select {
+    width: 120px;
+}
+
+input[type="number"].ywsbs-short,
+input[type="text"].ywsbs-short {
+    width: 60px;
+}
+
+.padding-10 {
+    padding-top: 10px;
+}
+
+.ywsbs-general-section span.ywsbs-inline-fields {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.ywsbs-general-section span.ywsbs-inline-fields ~ span.ywsbs-inline-fields {
+    margin-top: 10px;
+}
+
+.ywsbs-general-section [data-deps-on] {
+    display: none;
+}
+
+/************************
+    SIMPLE PRODUCTS
+ *************************/
+
+#woocommerce-product-data ul.wc-tabs li.subscription-settings_options a:before {
+    content: '';
+    background-color: #2271b1;
+    width: 13px;
+    height: 12px;
+    display: inline-block;
+    mask-image: url( "../images/subscription-panel.svg" );
+    -webkit-mask-image: url( "../images/subscription-panel.svg" );
+    mask-size: contain;
+    -webkit-mask-size: contain;
+}
+
+#woocommerce-product-data ul.wc-tabs li.subscription-settings_options:hover a:before {
+    background-color: #135e96;
+}
+
+#woocommerce-product-data ul.wc-tabs li.subscription-settings_options.active a:before {
+    background-color: #555555;
+}
+
+.woocommerce_options_panel.ywsbs-general-section {
+    padding-bottom: 20px;
+}
+
+.woocommerce_options_panel.ywsbs-general-section .form-field {
+    padding: 20px 20px 5px 162px !important;
+    font-size: 12px;
+}
+
+.woocommerce_options_panel.ywsbs-general-section .form-field label,
+.woocommerce_options_panel.ywsbs-general-section .form-field legend {
+    padding-right: 20px;
+    box-sizing: border-box;
+}
+
+.woocommerce_options_panel.ywsbs-general-section input[type="radio"] {
+    margin-left: 15px;
+}
+
+.woocommerce_options_panel.ywsbs-general-section .wc-radios {
+    width: 80%;
+}
+
+.woocommerce_options_panel.ywsbs-general-section .wc-radios li {
+    margin-left: -15px;
+}
+
+.woocommerce_options_panel.ywsbs-general-section .form-field.ywsbs_max_length {
+    margin-top: -35px;
+}
+
+.woocommerce_options_panel.ywsbs-general-section .form-field.ywsbs_max_length-description {
+    margin-top: -35px;
+}

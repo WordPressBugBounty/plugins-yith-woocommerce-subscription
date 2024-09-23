@@ -1,0 +1,16 @@
+<wpml-config>
+    <admin-texts>
+        <key name="ywsbs_add_to_cart_label" />
+        <key name="ywsbs_place_order_label" />
+    </admin-texts>
+    <custom-fields>
+        <custom-field action="copy">_ywsbs_enable_limit</custom-field>
+        <custom-field action="copy">_ywsbs_enable_max_length</custom-field>
+        <custom-field action="copy">_ywsbs_max_length</custom-field>
+        <custom-field action="copy">_ywsbs_limit</custom-field>
+        <custom-field action="copy">_ywsbs_order_version</custom-field>
+        <custom-field action="copy">_ywsbs_price_is_per</custom-field>
+        <custom-field action="copy">_ywsbs_price_time_option</custom-field>
+        <custom-field action="copy">_ywsbs_subscription</custom-field>
+    </custom-fields>
+</wpml-config>
