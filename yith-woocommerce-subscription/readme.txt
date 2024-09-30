@@ -5,7 +5,7 @@ Tags: recurring billing, subscription billing, subscription box, Subscription Ma
 Requires PHP: 7.4
 Requires at least: 6.4
 Tested up to: 6.6
-Stable tag: 4.1.0
+Stable tag: 4.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+
+= 4.1.1 - Released on 26 Sep 2024 =
+ * New: support for WooCommerce PayPal Payments 2.9.1
 
 = 4.1.0 - Released on 13 Sep 2024 =
  * New: support for WooCommerce 9.3

@@ -7,73 +7,65 @@
 
 declare( strict_types = 1 );
 
+use WooCommerce\PayPalCommerce\Vendor\Dhii\Container\ServiceProvider;
+use WooCommerce\PayPalCommerce\Vendor\Dhii\Modular\Module\ModuleInterface;
 use Psr\Log\LoggerInterface;
 use WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException;
 use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenRepository;
-use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ExecutableModule;
-use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ExtendingModule;
-use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ModuleClassNameIdTrait;
-use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ServiceModule;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayPalGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
+use WooCommerce\PayPalCommerce\Vendor\Interop\Container\ServiceProviderInterface;
 use WooCommerce\PayPalCommerce\Vendor\Psr\Container\ContainerInterface;
-use WooCommerce\PayPalCommerce\WcGateway\Processor\TransactionIdHandlingTrait;
 
 /**
  * Class SubscriptionModule
  */
-class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule, ExecutableModule {
-	use ModuleClassNameIdTrait;
-	use TransactionIdHandlingTrait;
+class YWSBS_WC_PayPal_Payments_Module implements ModuleInterface {
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function services(): array {
-		return array(
-			// Backward compatibility with version 2.4.2 or lower.
-			'subscription.helper'                    => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
-				return new YWSBS_WC_PayPal_Payments_Helper( $container->get( 'wcgateway.settings' ) );
-			},
-			'wc-subscriptions.helper'                => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
-				return new YWSBS_WC_PayPal_Payments_Helper();
-			},
-			'button.helper.disabled-funding-sources' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Disabled_Sources {
-				return new YWSBS_WC_PayPal_Disabled_Sources(
-					$container->get( 'wcgateway.settings' ),
-					$container->get( 'wcgateway.all-funding-sources' )
-				);
-			},
-			'ywsbs-subscription.renewal-handler'     => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
-				return new YWSBS_WC_PayPal_Payments_Renewal_Handler(
-					$container->get( 'woocommerce.logger.woocommerce' ),
-					$container->get( 'vaulting.repository.payment-token' ),
-					$container->get( 'api.endpoint.order' ),
-					$container->get( 'api.factory.purchase-unit' ),
-					$container->get( 'api.factory.shipping-preference' ),
-					$container->get( 'api.factory.payer' ),
-					$container->get( 'onboarding.environment' ),
-					$container->get( 'wcgateway.settings' ),
-					$container->get( 'wcgateway.processor.authorized-payments' ),
-					$container->get( 'wcgateway.funding-source.renderer' ),
-					$container->get( 'wc-subscriptions.helpers.real-time-account-updater' ),
-					$container->get( 'wc-subscriptions.helper' )
-				);
-			},
+	public function setup(): ServiceProviderInterface {
+		return new ServiceProvider(
+			array(
+				// Backward compatibility with version 2.4.2 or lower.
+				'subscription.helper'                    => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
+					return new YWSBS_WC_PayPal_Payments_Helper( $container->get( 'wcgateway.settings' ) );
+				},
+				'wc-subscriptions.helper'                => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
+					return new YWSBS_WC_PayPal_Payments_Helper();
+				},
+				'button.helper.disabled-funding-sources' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Disabled_Sources {
+					return new YWSBS_WC_PayPal_Disabled_Sources(
+						$container->get( 'wcgateway.settings' ),
+						$container->get( 'wcgateway.all-funding-sources' )
+					);
+				},
+				'ywsbs-subscription.renewal-handler'     => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
+					return new YWSBS_WC_PayPal_Payments_Renewal_Handler(
+						$container->get( 'woocommerce.logger.woocommerce' ),
+						$container->get( 'vaulting.repository.payment-token' ),
+						$container->get( 'api.endpoint.order' ),
+						$container->get( 'api.factory.purchase-unit' ),
+						$container->get( 'api.factory.shipping-preference' ),
+						$container->get( 'api.factory.payer' ),
+						$container->get( 'onboarding.environment' ),
+						$container->get( 'wcgateway.settings' ),
+						$container->get( 'wcgateway.processor.authorized-payments' ),
+						$container->get( 'wcgateway.funding-source.renderer' ),
+						$container->get( 'wc-subscriptions.helpers.real-time-account-updater' ),
+						$container->get( 'wc-subscriptions.helper' )
+					);
+				},
+			),
+			array()
 		);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function extensions(): array {
-		return array();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function run( ContainerInterface $c ): bool {
+	public function run( ContainerInterface $c ): void {
 
 		// Add integration for yith_subscription.
 		add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'register_supports' ), 10, 3 );
@@ -128,8 +120,6 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 		);
 
 		$this->maybe_remove_action_scheduler_filter();
-
-		return true;
 	}
 
 	/**
