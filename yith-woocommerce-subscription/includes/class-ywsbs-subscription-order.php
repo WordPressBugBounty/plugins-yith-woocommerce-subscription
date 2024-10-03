@@ -303,15 +303,20 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 				$subscription_info['taxes'][] = $rate_args;
 			}
 
+			// Get item from order.
 			foreach ( $order->get_items() as $item ) {
-				if ( $item->get_meta( '_cart_item_key' ) === $cart_item_key ) {
-					$subscription_info['order_item_id'] = $item->get_id();
+				if ( $item->get_meta( '_cart_item_key' ) !== $cart_item_key ) {
+					continue;
 				}
+
+				$order_item_id                      = $item->get_id();
+				$subscription_info['order_item_id'] = $order_item_id;
 			}
 
 			// Third party filter subscription info before set.
 			$subscription_info = apply_filters( 'ywsbs_subscription_info_meta', $subscription_info, $new_cart, $new_cart_item_key, $cart_item );
-			wc_add_order_item_meta( $item->get_id(), '_subscription_info', $subscription_info, true );
+			wc_add_order_item_meta( $order_item_id ?? 0, '_subscription_info', $subscription_info, true );
+
 			$new_cart->empty_cart( true );
 			WC()->cart->empty_cart( true );
 			WC()->session->set( 'cart', $this->actual_cart );
