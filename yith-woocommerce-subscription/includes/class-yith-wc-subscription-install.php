@@ -23,17 +23,25 @@ if ( ! class_exists( 'YITH_WC_Subscription_Install' ) ) {
 		 */
 		public static function install() {
 
+			add_action( 'plugins_loaded', array( __CLASS__, 'load_textdomain' ), 12 );
 			add_action( 'init', array( __CLASS__, 'register_post_type' ), 5 );
-			// Init fw hooks.
-			add_action( 'plugins_loaded', array( __CLASS__, 'load_plugin_framework' ), 15 );
 
 			// Declare support with HPOS system for WooCommerce 8.
 			add_action( 'before_woocommerce_init', array( __CLASS__, 'declare_hpos_support' ) );
 
-			// Load text domain.
-			load_plugin_textdomain( 'yith-woocommerce-subscription', false, dirname( plugin_basename( YITH_YWSBS_FILE ) ) . '/languages/' );
-
 			do_action( 'ywsbs_after_installation_process' );
+		}
+
+		/**
+		 * Load plugin texdomain
+		 *
+		 * @since 4.4.0
+		 * @return void
+		 */
+		public static function load_textdomain() {
+			if ( function_exists( 'yith_plugin_fw_load_plugin_textdomain' ) ) {
+				yith_plugin_fw_load_plugin_textdomain( 'yith-woocommerce-subscription', dirname( plugin_basename( YITH_YWSBS_FILE ) ) . '/languages/' );
+			}
 		}
 
 		/**

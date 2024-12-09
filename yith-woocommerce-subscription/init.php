@@ -3,13 +3,13 @@
  * Plugin Name: YITH WooCommerce Subscription
  * Plugin URI: https://yithemes.com/themes/plugins/yith-woocommerce-subscription/
  * Description: <code><strong>YITH WooCommerce Subscription</strong></code> allows enabling automatic recurring payments on your products. Once you buy a subscription-based product, the plugin will renew the payment automatically based on your own settings. Perfect for any kind of subscriptions, like magazines, software and so on. <a href="https://yithemes.com/" target="_blank">Get more plugins for your e-commerce shop on <strong>YITH</strong></a>.
- * Version: 4.1.2
+ * Version: 4.2.0
  * Author: YITH
  * Author URI: https://yithemes.com/
  * Text Domain: yith-woocommerce-subscription
  * Domain Path: /languages/
- * WC requires at least: 9.1
- * WC tested up to: 9.3
+ * WC requires at least: 9.2
+ * WC tested up to: 9.5
  *
  * @package YITH\Subscription
  */
@@ -23,11 +23,9 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
 ! defined( 'YITH_YWSBS_DIR' ) && define( 'YITH_YWSBS_DIR', plugin_dir_path( __FILE__ ) );
 
 /* Plugin Framework Version Check */
-if ( ! function_exists( 'yit_maybe_plugin_fw_loader' ) && file_exists( YITH_YWSBS_DIR . 'plugin-fw/init.php' ) ) {
+if ( file_exists( YITH_YWSBS_DIR . 'plugin-fw/init.php' ) ) {
 	require_once YITH_YWSBS_DIR . 'plugin-fw/init.php';
 }
-yit_maybe_plugin_fw_loader( YITH_YWSBS_DIR );
-
 
 // This version can't be activate if premium version is active  ________________________________________.
 if ( defined( 'YITH_YWSBS_PREMIUM' ) ) {
@@ -54,22 +52,9 @@ if ( ! function_exists( 'yith_plugin_registration_hook' ) ) {
 }
 register_activation_hook( __FILE__, 'yith_plugin_registration_hook' );
 
-if ( ! function_exists( 'yith_ywsbs_install_woocommerce_admin_notice' ) ) {
-	/**
-	 * Show an error if WooCommerce is not installed
-	 */
-	function yith_ywsbs_install_woocommerce_admin_notice() {
-		?>
-		<div class="error">
-			<p><?php esc_html_e( 'YITH WooCommerce Subscription is enabled but not effective. It requires WooCommerce in order to work.', 'yith-woocommerce-subscription' ); ?></p>
-		</div>
-		<?php
-	}
-}
-
 // Define constants ________________________________________.
 
-! defined( 'YITH_YWSBS_VERSION' ) && define( 'YITH_YWSBS_VERSION', '4.1.2' );
+! defined( 'YITH_YWSBS_VERSION' ) && define( 'YITH_YWSBS_VERSION', '4.2.0' );
 ! defined( 'YITH_YWSBS_FREE_INIT' ) && define( 'YITH_YWSBS_FREE_INIT', plugin_basename( __FILE__ ) );
 ! defined( 'YITH_YWSBS_INIT' ) && define( 'YITH_YWSBS_INIT', plugin_basename( __FILE__ ) );
 ! defined( 'YITH_YWSBS_FILE' ) && define( 'YITH_YWSBS_FILE', __FILE__ );
