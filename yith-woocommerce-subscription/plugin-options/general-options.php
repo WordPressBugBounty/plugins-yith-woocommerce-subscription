@@ -17,6 +17,19 @@ $settings = array(
 			'id'   => 'ywsbs_section_general',
 		),
 
+		'enable_manual_renews_gateways'                 => array(
+			'name'      => esc_html__( 'Allow user to manually renew a subscription', 'yith-woocommerce-subscription' ),
+			'desc'      => esc_html__( 'Choose whether a user can renew a subscription if the payment gateway does not support automatic payments.', 'yith-woocommerce-subscription' ),
+			'id'        => 'ywsbs_enable_manual_renews',
+			'type'      => 'yith-field',
+			'yith-type' => 'radio',
+			'options'   => array(
+				'yes' => esc_html__( 'Yes, the customer will be able to pay the renewal order on My Account page, if the payment gateway does not support automatic payments.', 'yith-woocommerce-subscription' ),
+				'no'  => esc_html__( 'No, only use the supported gateways enabled for automatic payments.', 'yith-woocommerce-subscription' ),
+			),
+			'default'   => 'no',
+		),
+
 		'disable_the_reduction_of_order_stock_in_renew' => array(
 			'name'      => esc_html__( 'Stock management with recurring payments', 'yith-woocommerce-subscription' ),
 			'desc'      => esc_html__( 'Choose if the recurring payments will reduce the stock count of a subscription product.', 'yith-woocommerce-subscription' ),

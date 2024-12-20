@@ -599,24 +599,20 @@ if ( ! class_exists( 'YWSBS_Subscription_Cart' ) ) {
 		public function disable_gateways( $gateways ) {
 
 			if ( WC()->cart && is_checkout() ) {
-				$subscription_on_cart = self::cart_has_subscriptions();
+				$subscription_on_cart  = self::cart_has_subscriptions();
+				$manual_renews_allowed = 'yes' === get_option( 'ywsbs_enable_manual_renews', 'yes' );
 
 				if ( ! $subscription_on_cart || ! is_array( $subscription_on_cart ) ) {
 					return $gateways;
 				}
 
-				foreach ( $gateways as $gateway_id => $gateway ) {
-					if ( ! $gateway->supports( 'yith_subscriptions' ) ) {
-						unset( $gateways[ $gateway_id ] );
-						continue;
+				$gateways = array_filter(
+					$gateways,
+					function ( $gateway ) use ( $manual_renews_allowed, $subscription_on_cart ) {
+						// If manual renew is allowed always add the gateway.
+						return ! $gateway->supports( 'yith_subscriptions' ) ? $manual_renews_allowed : ( count( $subscription_on_cart ) < 2 || $gateway->supports( 'yith_subscriptions_multiple' ) );
 					}
-
-					if ( count( $subscription_on_cart ) >= 2 && WC()->payment_gateways() ) {
-						if ( ! $gateway->supports( 'yith_subscriptions_multiple' ) ) {
-							unset( $gateways[ $gateway_id ] );
-						}
-					}
-				}
+				);
 			}
 
 			return $gateways;
