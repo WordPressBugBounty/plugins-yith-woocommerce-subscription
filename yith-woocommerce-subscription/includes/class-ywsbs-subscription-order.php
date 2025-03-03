@@ -45,11 +45,6 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 			} else {
 				add_action( 'woocommerce_order_status_cancelled', array( __CLASS__, 'cancel_subscriptions' ), 10 );
 			}
-
-			if ( ywsbs_delete_cancelled_pending_enabled() ) {
-				add_action( 'ywsbs_trash_pending_subscriptions', array( $this, 'ywsbs_trash_pending_subscriptions' ) );
-				add_action( 'ywsbs_trash_cancelled_subscriptions', array( $this, 'ywsbs_trash_cancelled_subscriptions' ) );
-			}
 		}
 
 		/**

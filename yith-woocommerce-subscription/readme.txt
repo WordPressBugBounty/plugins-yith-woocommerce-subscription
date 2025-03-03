@@ -5,7 +5,7 @@ Tags: recurring billing, subscription billing, subscription box, Subscription Ma
 Requires PHP: 7.4
 Requires at least: 6.5
 Tested up to: 6.7
-Stable tag: 4.4.0
+Stable tag: 4.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+
+= 4.5.0 - Released on 03 Mar 2025 =
+ * New: support for WooCommerce 9.7
+ * Update: YITH plugin framework
+ * Fix: undefined method for callback
 
 = 4.4.0 - Released on 04 Feb 2025 =
  * New: support for WooCommerce 9.6
