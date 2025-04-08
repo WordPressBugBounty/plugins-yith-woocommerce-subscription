@@ -42,22 +42,38 @@ class YWSBS_WC_PayPal_Payments_Integration {
 			return;
 		}
 
-		// Backward compatibility with version 2.4.2 or lower.
-		if ( version_compare( $pp_version, '2.4.3', '<' ) ) {
-			require_once 'module/src/legacy/class-ywsbs-wc-paypal-payments-helper.php';
-		} else {
-			require_once 'module/src/class-ywsbs-wc-paypal-payments-helper.php';
+		$files_map = array(
+			'class-ywsbs-wc-paypal-disabled-sources.php' => 'YWSBS_WC_PayPal_Disabled_Sources',
+			'class-ywsbs-wc-paypal-payments-helper.php'  => 'YWSBS_WC_PayPal_Payments_Helper',
+			'class-ywsbs-wc-paypal-payments-renewal-handler.php' => 'YWSBS_WC_PayPal_Payments_Renewal_Handler',
+			'class-ywsbs-wc-paypal-payments-module.php'  => 'YWSBS_WC_PayPal_Payments_Module',
+		);
+
+		// Conditionally load legacy files to grant backward compatibility.
+		$legacy_dir = YITH_YWSBS_INC . 'gateways/woocommerce-paypal-payments/module/src/legacy';
+		foreach ( scandir( $legacy_dir ) as $legacy_version_dir ) {
+			if ( in_array( $legacy_version_dir, array( '.', '..' ), true ) || ! version_compare( $pp_version, $legacy_version_dir, '<=' ) ) {
+				continue;
+			}
+
+			foreach ( scandir( $legacy_dir . DIRECTORY_SEPARATOR . $legacy_version_dir ) as $file ) {
+				if ( in_array( $file, array( '.', '..' ), true ) ) {
+					continue;
+				}
+
+				// Check class exists to avoid require duplicates.
+				if ( empty( $files_map[ $file ] ) || ! class_exists( $files_map[ $file ] ) ) {
+					require_once $legacy_dir . DIRECTORY_SEPARATOR . $legacy_version_dir . DIRECTORY_SEPARATOR . $file;
+				}
+			}
 		}
 
-		// Backward compatibility with version 2.9.0 or lower.
-		if ( version_compare( $pp_version, '2.9.1', '<' ) ) {
-			require_once 'module/src/legacy/class-ywsbs-wc-paypal-payments-module.php';
-		} else {
-			require_once 'module/src/class-ywsbs-wc-paypal-payments-module.php';
+		// include common.
+		foreach ( $files_map as $file => $class_name ) {
+			if ( ! class_exists( $class_name ) ) {
+				require_once YITH_YWSBS_INC . "gateways/woocommerce-paypal-payments/module/src/{$file}";
+			}
 		}
-
-		require_once 'module/src/class-ywsbs-wc-paypal-disabled-sources.php';
-		require_once 'module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php';
 	}
 
 	/**

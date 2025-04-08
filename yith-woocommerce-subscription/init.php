@@ -3,13 +3,13 @@
  * Plugin Name: YITH WooCommerce Subscription
  * Plugin URI: https://yithemes.com/themes/plugins/yith-woocommerce-subscription/
  * Description: <code><strong>YITH WooCommerce Subscription</strong></code> allows enabling automatic recurring payments on your products. Once you buy a subscription-based product, the plugin will renew the payment automatically based on your own settings. Perfect for any kind of subscriptions, like magazines, software and so on. <a href="https://yithemes.com/" target="_blank">Get more plugins for your e-commerce shop on <strong>YITH</strong></a>.
- * Version: 4.5.0
+ * Version: 4.6.0
  * Author: YITH
  * Author URI: https://yithemes.com/
  * Text Domain: yith-woocommerce-subscription
  * Domain Path: /languages/
- * WC requires at least: 9.5
- * WC tested up to: 9.7
+ * WC requires at least: 9.6
+ * WC tested up to: 9.8
  * Requires Plugins: woocommerce
  *
  * @package YITH\Subscription
@@ -34,6 +34,7 @@ if ( defined( 'YITH_YWSBS_PREMIUM' ) ) {
 	 * Admin notice when the free version will be installed
 	 */
 	function yith_ywsbs_install_free_admin_notice() {
+		YITH_WC_Subscription_Install::load_textdomain();
 		?>
 		<div class="error">
 			<p><?php esc_html_e( 'You can\'t activate the free version of YITH WooCommerce Subscription while you are using the premium one.', 'yith-woocommerce-subscription' ); ?></p>
@@ -55,7 +56,7 @@ register_activation_hook( __FILE__, 'yith_plugin_registration_hook' );
 
 // Define constants ________________________________________.
 
-! defined( 'YITH_YWSBS_VERSION' ) && define( 'YITH_YWSBS_VERSION', '4.5.0' );
+! defined( 'YITH_YWSBS_VERSION' ) && define( 'YITH_YWSBS_VERSION', '4.6.0' );
 ! defined( 'YITH_YWSBS_FREE_INIT' ) && define( 'YITH_YWSBS_FREE_INIT', plugin_basename( __FILE__ ) );
 ! defined( 'YITH_YWSBS_INIT' ) && define( 'YITH_YWSBS_INIT', plugin_basename( __FILE__ ) );
 ! defined( 'YITH_YWSBS_FILE' ) && define( 'YITH_YWSBS_FILE', __FILE__ );
@@ -85,6 +86,7 @@ add_action(
 			add_action(
 				'admin_notices',
 				function () {
+					YITH_WC_Subscription_Install::load_textdomain();
 					?>
 					<div class="error">
 						<p><?php esc_html_e( 'YITH WooCommerce Subscription is enabled but not effective. It requires WooCommerce in order to work.', 'yith-woocommerce-subscription' ); ?></p>

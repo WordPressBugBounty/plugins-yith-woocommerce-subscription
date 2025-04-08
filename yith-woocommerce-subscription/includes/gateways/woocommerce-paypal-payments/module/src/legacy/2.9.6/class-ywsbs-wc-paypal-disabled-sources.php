@@ -12,7 +12,6 @@ use WooCommerce\PayPalCommerce\Button\Helper\DisabledFundingSources;
 use WooCommerce\PayPalCommerce\WcGateway\Exception\NotFoundException;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayPalGateway;
-use WooCommerce\PayPalCommerce\WcGateway\Helper\CardPaymentsConfiguration;
 use WooCommerce\PayPalCommerce\WcGateway\Settings\Settings;
 
 /**
@@ -30,13 +29,12 @@ class YWSBS_WC_PayPal_Disabled_Sources extends DisabledFundingSources {
 	/**
 	 * DisabledFundingSources constructor.
 	 *
-	 * @param Settings                  $settings            The settings.
-	 * @param array                     $all_funding_sources All existing funding sources.
-	 * @param CardPaymentsConfiguration $dcc_configuration   DCC gateway configuration.
+	 * @param Settings $settings The settings.
+	 * @param array    $all_funding_sources All existing funding sources.
 	 */
-	public function __construct( Settings $settings, array $all_funding_sources, CardPaymentsConfiguration $dcc_configuration ) {
+	public function __construct( Settings $settings, array $all_funding_sources ) {
 		$this->funding_sources = $all_funding_sources;
-		parent::__construct( $settings, $all_funding_sources, $dcc_configuration );
+		parent::__construct( $settings, $all_funding_sources );
 	}
 
 	/**
@@ -46,7 +44,7 @@ class YWSBS_WC_PayPal_Disabled_Sources extends DisabledFundingSources {
 	 * @return array|int[]|mixed|string[]
 	 * @throws NotFoundException When the setting is not found.
 	 */
-	public function sources( string $context ): array {
+	public function sources( string $context ) {
 		if ( $this->disabled_sources() ) {
 			unset( $this->funding_sources['paypal'] );
 			return $this->funding_sources;

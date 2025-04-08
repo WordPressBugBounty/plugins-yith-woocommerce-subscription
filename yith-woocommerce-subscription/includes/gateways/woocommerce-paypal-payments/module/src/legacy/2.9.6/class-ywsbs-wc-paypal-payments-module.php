@@ -7,7 +7,7 @@
 
 declare( strict_types = 1 );
 
-use WooCommerce\PayPalCommerce\Vendor\Psr\Log\LoggerInterface;
+use Psr\Log\LoggerInterface;
 use WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException;
 use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenRepository;
 use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ExecutableModule;
@@ -37,8 +37,7 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 			'button.helper.disabled-funding-sources' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Disabled_Sources {
 				return new YWSBS_WC_PayPal_Disabled_Sources(
 					$container->get( 'wcgateway.settings' ),
-					$container->get( 'wcgateway.all-funding-sources' ),
-					$container->get( 'wcgateway.configuration.card-configuration' )
+					$container->get( 'wcgateway.all-funding-sources' )
 				);
 			},
 			'ywsbs-subscription.renewal-handler'     => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
@@ -49,14 +48,12 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 					$container->get( 'api.factory.purchase-unit' ),
 					$container->get( 'api.factory.shipping-preference' ),
 					$container->get( 'api.factory.payer' ),
-					$container->get( 'settings.environment' ),
+					$container->get( 'onboarding.environment' ),
 					$container->get( 'wcgateway.settings' ),
 					$container->get( 'wcgateway.processor.authorized-payments' ),
 					$container->get( 'wcgateway.funding-source.renderer' ),
 					$container->get( 'wc-subscriptions.helpers.real-time-account-updater' ),
-					$container->get( 'wc-subscriptions.helper' ),
-					$container->get( 'api.endpoint.payment-tokens' ),
-					$container->get( 'vaulting.wc-payment-tokens' )
+					$container->get( 'wc-subscriptions.helper' )
 				);
 			},
 		);
@@ -116,10 +113,6 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 
 				// Double check subscription payment method.
 				if ( ! in_array( $subscription->get_payment_method(), array( PayPalGateway::ID, CreditCardGateway::ID ), true ) ) {
-					return;
-				}
-
-				if ( ! $c->has( 'save-payment-methods.eligible' ) || ! $c->get( 'save-payment-methods.eligible' ) ) {
 					return;
 				}
 
