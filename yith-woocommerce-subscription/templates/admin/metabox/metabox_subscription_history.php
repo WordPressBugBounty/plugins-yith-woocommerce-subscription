@@ -47,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) || ! defined( 'YITH_YWSBS_VERSION' ) ) {
 							)
 						);
 						?>
-									"><?php echo esc_html( '#' . $current_order->get_id() ); ?></a>
+									"><?php echo esc_html( '#' . $current_order->get_order_number() ); ?></a>
 					</td>
 					<td>
 						<?php echo esc_html( ywsbs_subscription_order_type( $subscription, $current_order ) ); ?>

@@ -5,7 +5,7 @@ Tags: recurring billing, subscription billing, subscription box, Subscription Ma
 Requires PHP: 7.4
 Requires at least: 6.6
 Tested up to: 6.8
-Stable tag: 4.6.0
+Stable tag: 4.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+
+= 4.7.0 - Released on 29 May 2025 =
+ * New: support for WooCommerce 9.9
+ * Update: YITH plugin framework
+ * Tweak: show order number in subscription history metabox
 
 = 4.6.0 - Released on 08 Apr 2025 =
  * New: support for WordPress 6.8
