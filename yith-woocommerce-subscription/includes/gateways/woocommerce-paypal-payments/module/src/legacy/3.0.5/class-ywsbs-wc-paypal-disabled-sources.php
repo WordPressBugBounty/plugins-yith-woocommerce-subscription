@@ -33,11 +33,10 @@ class YWSBS_WC_PayPal_Disabled_Sources extends DisabledFundingSources {
 	 * @param Settings                  $settings            The settings.
 	 * @param array                     $all_funding_sources All existing funding sources.
 	 * @param CardPaymentsConfiguration $dcc_configuration   DCC gateway configuration.
-     * @param  string  $merchant_country  Merchant country.
 	 */
-	public function __construct( Settings $settings, array $all_funding_sources, CardPaymentsConfiguration $dcc_configuration, string $merchant_country ) {
+	public function __construct( Settings $settings, array $all_funding_sources, CardPaymentsConfiguration $dcc_configuration ) {
 		$this->funding_sources = $all_funding_sources;
-		parent::__construct( $settings, $all_funding_sources, $dcc_configuration, $merchant_country );
+		parent::__construct( $settings, $all_funding_sources, $dcc_configuration );
 	}
 
 	/**

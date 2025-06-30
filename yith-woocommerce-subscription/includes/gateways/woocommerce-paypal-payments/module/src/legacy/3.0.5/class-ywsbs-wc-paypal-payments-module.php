@@ -38,8 +38,7 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 				return new YWSBS_WC_PayPal_Disabled_Sources(
 					$container->get( 'wcgateway.settings' ),
 					$container->get( 'wcgateway.all-funding-sources' ),
-					$container->get( 'wcgateway.configuration.card-configuration' ),
-                    $container->get( 'api.shop.country' )
+					$container->get( 'wcgateway.configuration.card-configuration' )
 				);
 			},
 			'ywsbs-subscription.renewal-handler'     => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
