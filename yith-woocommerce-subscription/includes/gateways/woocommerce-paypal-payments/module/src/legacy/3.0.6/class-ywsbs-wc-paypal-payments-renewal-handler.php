@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 use WooCommerce\PayPalCommerce\ApiClient\Endpoint\OrderEndpoint;
 use WooCommerce\PayPalCommerce\ApiClient\Endpoint\PaymentTokensEndpoint;
+use WooCommerce\PayPalCommerce\ApiClient\Entity\ApplicationContext;
 use WooCommerce\PayPalCommerce\ApiClient\Entity\Authorization;
 use WooCommerce\PayPalCommerce\ApiClient\Entity\AuthorizationStatus;
 use WooCommerce\PayPalCommerce\ApiClient\Entity\Order;
@@ -335,7 +336,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 	private function process_order( \WC_Order $wc_order ): void {
 
 		if ( 'yes' === $wc_order->get_meta( 'is_a_renew' ) ) {
-			add_filter( 'ppcp_create_order_request_body_data', array( $this, 'force_authorize_for_renew' ), 99, 1 );
+			add_filter( 'ppcp_create_order_request_body_data', array( $this, 'force_authorize_for_renew' ), 10, 1 );
 		}
 
 		$order = $this->get_order( $wc_order );
@@ -343,7 +344,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 			$this->handle_paypal_order( $wc_order, $order );
 		}
 
-		remove_filter( 'ppcp_create_order_request_body_data', array( $this, 'force_authorize_for_renew' ), 99 );
+		remove_filter( 'ppcp_create_order_request_body_data', array( $this, 'force_authorize_for_renew' ), 10 );
 	}
 
 	/**
@@ -443,6 +444,9 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 				array( $purchase_unit ),
 				$shipping_preference,
 				$payer,
+				null,
+				'',
+				ApplicationContext::USER_ACTION_CONTINUE,
 				'',
 				array(),
 				$payment_source
@@ -475,6 +479,9 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 					array( $purchase_unit ),
 					$shipping_preference,
 					$payer,
+					null,
+					'',
+					ApplicationContext::USER_ACTION_CONTINUE,
 					'',
 					array(),
 					$payment_source
@@ -486,9 +493,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 					array( $purchase_unit ),
 					$shipping_preference,
 					$payer,
-                    '',
-                    array(),
-                    $token->to_payment_source()
+					$token
 				);
 			}
 		}

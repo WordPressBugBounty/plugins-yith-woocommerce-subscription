@@ -18,7 +18,6 @@ use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayPalGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
 use WooCommerce\PayPalCommerce\Vendor\Psr\Container\ContainerInterface;
 use WooCommerce\PayPalCommerce\WcGateway\Processor\TransactionIdHandlingTrait;
-use WooCommerce\PayPalCommerce\WcGateway\Settings\Settings;
 
 /**
  * Class SubscriptionModule
@@ -32,18 +31,18 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 	 */
 	public function services(): array {
 		return array(
-			'wc-subscriptions.helper'                => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
+			'wc-subscriptions.helper'            => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
 				return new YWSBS_WC_PayPal_Payments_Helper();
 			},
-			'button.helper.disabled-funding-sources' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Disabled_Sources {
-				return new YWSBS_WC_PayPal_Disabled_Sources(
-					$container->get( 'wcgateway.settings' ),
-					$container->get( 'wcgateway.all-funding-sources' ),
-					$container->get( 'wcgateway.configuration.card-configuration' ),
+            'button.helper.disabled-funding-sources' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Disabled_Sources {
+                return new YWSBS_WC_PayPal_Disabled_Sources(
+                    $container->get( 'wcgateway.settings' ),
+                    $container->get( 'wcgateway.all-funding-sources' ),
+                    $container->get( 'wcgateway.configuration.card-configuration' ),
                     $container->get( 'api.shop.country' )
-				);
-			},
-			'ywsbs-subscription.renewal-handler'     => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
+                );
+            },
+			'ywsbs-subscription.renewal-handler' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
 				return new YWSBS_WC_PayPal_Payments_Renewal_Handler(
 					$container->get( 'woocommerce.logger.woocommerce' ),
 					$container->get( 'vaulting.repository.payment-token' ),
@@ -57,8 +56,8 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 					$container->get( 'wcgateway.funding-source.renderer' ),
 					$container->get( 'wc-subscriptions.helpers.real-time-account-updater' ),
 					$container->get( 'wc-subscriptions.helper' ),
-					$container->get( 'api.endpoint.payment-tokens' ),
-					$container->get( 'vaulting.wc-payment-tokens' )
+					$container->get('api.endpoint.payment-tokens'),
+					$container->get('vaulting.wc-payment-tokens')
 				);
 			},
 		);
@@ -78,17 +77,6 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 
 		// Add integration for yith_subscription.
 		add_filter( 'woocommerce_payment_gateway_supports', array( $this, 'register_supports' ), 10, 3 );
-
-        // Make sure vault is enabled.
-        add_filter(
-            'option_woocommerce-ppcp-data-settings',
-            function ( $value ) {
-                is_array( $value ) && $value['save_paypal_and_venmo'] = true;
-                return $value;
-            },
-            10,
-            1
-        );
 
 		add_action(
 			'ywsbs_renew_subscription',
@@ -142,6 +130,8 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 				$this->add_payment_token_id( $subscription, $payment_token_repository, $logger );
 			}
 		);
+
+		$this->maybe_remove_action_scheduler_filter();
 
 		return true;
 	}
@@ -233,5 +223,35 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 			'yith_subscriptions_recurring_amount',
 		);
 		return in_array( $feature, $supports, true ) ? true : $support;
+	}
+
+	/**
+	 * Remove filter action_scheduler_before_execute added from WooCommerce\PayPalCommerce\Subscription\SubscriptionModule
+	 * to avoid errors with subscription renew process.
+	 *
+	 * @return void
+	 */
+	protected function maybe_remove_action_scheduler_filter() {
+		global $wp_filter;
+
+		if ( empty( $wp_filter['action_scheduler_before_execute'] ) || ! class_exists( 'ReflectionFunction' ) ) {
+			return;
+		}
+
+		foreach ( $wp_filter['action_scheduler_before_execute'] as $priority => $callbacks ) {
+			foreach ( $callbacks as $id => $callback ) {
+				if ( empty( $callback['function'] ) || ! is_object( $callback['function'] ) ) {
+					continue;
+				}
+
+				$function = new ReflectionFunction( $callback['function'] );
+				if (
+					$function->getClosureThis() instanceof WooCommerce\PayPalCommerce\Subscription\SubscriptionModule ||
+					$function->getClosureThis() instanceof WooCommerce\PayPalCommerce\PayPalSubscriptions\PayPalSubscriptionsModule
+				) {
+					unset( $wp_filter['action_scheduler_before_execute']->callbacks[ $priority ][ $id ] );
+				}
+			}
+		}
 	}
 }
