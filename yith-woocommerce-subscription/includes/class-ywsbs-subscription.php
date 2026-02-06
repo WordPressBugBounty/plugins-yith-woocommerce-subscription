@@ -116,6 +116,13 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 		public $post = null;
 
 		/**
+		 * Stores the properties of a subscription.
+		 *
+		 * @var array
+		 */
+		protected $array_prop = array();
+
+		/**
 		 * Subscription main order
 		 *
 		 * @var WC_Order
@@ -128,13 +135,6 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 		 * @var WC_Product
 		 */
 		public $product = null;
-
-		/**
-		 * $post Stores post data
-		 *
-		 * @var string
-		 */
-		public $status;
 
 		/**
 		 * Constructor
@@ -159,20 +159,33 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 		}
 
 		/**
-		 * __get function.
+		 * Magic Method __get function.
 		 *
 		 * @param string $key Key.
 		 *
 		 * @return mixed
 		 */
 		public function __get( $key ) {
-			$value = get_post_meta( $this->id, $key, true );
-
-			if ( ! empty( $value ) ) {
-				$this->$key = $value;
+			if ( ! isset( $this->array_prop[ $key ] ) ) {
+				$this->array_prop[ $key ] = get_post_meta( $this->id, $key, true );
 			}
 
-			return $value;
+			return $this->array_prop[ $key ];
+		}
+
+		/**
+		 * Magic Method isset.
+		 *
+		 * @param string $key Key.
+		 *
+		 * @return bool
+		 */
+		public function __isset( $key ) {
+			if ( ! $this->id ) {
+				return false;
+			}
+
+			return metadata_exists( 'post', $this->id, $key );
 		}
 
 		/*
@@ -213,28 +226,6 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 			return apply_filters( 'ywsbs_get_number', '#' . $this->get_id(), $this );
 		}
 
-
-		/**
-		 * Set function
-		 *
-		 * @param string $property Property to set.
-		 * @param mixed  $value    Value.
-		 *
-		 * @return bool|int
-		 */
-		public function set( $property, $value ) {
-			$this->$property = $value;
-
-			return update_post_meta( $this->id, $property, $value );
-		}
-
-		/**
-		 * Get function
-		 *
-		 * @param string $property Property to retrieve.
-		 *
-		 * @return bool|int
-		 */
 		/**
 		 * Get function.
 		 *
@@ -244,7 +235,6 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 		 * @return mixed
 		 */
 		public function get( $prop, $context = 'view' ) {
-
 			$value = $this->$prop;
 			if ( 'view' === $context ) {
 				// APPLY_FILTER : ywsbs_subscription_{$key}: filtering the post meta of a subscription.
@@ -255,18 +245,17 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 		}
 
 		/**
-		 * Isset function
+		 * Set function.
 		 *
-		 * @param string $key Key.
+		 * @param string $prop  Property name.
+		 * @param mixed  $value Value of property.
 		 *
-		 * @return bool
+		 * @return bool|int
 		 */
-		public function __isset( $key ) {
-			if ( ! $this->id ) {
-				return false;
-			}
+		public function set( $prop, $value ) {
+			$this->array_prop[ $prop ] = $value;
 
-			return metadata_exists( 'post', $this->id, $key );
+			return update_post_meta( $this->id, $prop, $value );
 		}
 
 		/**
@@ -280,7 +269,7 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 			$this->post = get_post( $this->id );
 
 			foreach ( $this->get_subscription_meta() as $key => $value ) {
-				$this->$key = $value;
+				$this->set( $key, $value );
 			}
 
 			do_action( 'ywsbs_subscription_loaded', $this );

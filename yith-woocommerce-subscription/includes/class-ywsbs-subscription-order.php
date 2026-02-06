@@ -20,6 +20,20 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 		use YITH_WC_Subscription_Singleton_Trait;
 
 		/**
+		 * Temporary Cart.
+		 *
+		 * @var WC_Cart
+		 */
+		private $actual_cart;
+
+		/**
+		 * Temp variable for shipping method
+		 *
+		 * @var mixed.
+		 */
+		private $subscription_shipping_method_temp = null;
+
+		/**
 		 * Constructor
 		 *
 		 * Initialize plugin and registers actions and filters to be used
@@ -229,7 +243,7 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 
 							remove_filter( 'woocommerce_shipping_chosen_method', array( $this, 'change_shipping_chosen_method_temp' ) );
 
-							unset( $this->subscription_shipping_method_temp );
+                            $this->subscription_shipping_method_temp = null;
 						}
 					}
 				}
@@ -831,6 +845,17 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 					$subscription->delete();
 				}
 			}
+		}
+
+		/**
+		 * Overwrite chosen shipping method temp for calculate the subscription shipping
+		 *
+		 * @param string $method Shipping method.
+		 *
+		 * @return string
+		 */
+		public function change_shipping_chosen_method_temp( $method ) {
+			return ! is_null( $this->subscription_shipping_method_temp ) ? $this->subscription_shipping_method_temp : $method;
 		}
 	}
 }

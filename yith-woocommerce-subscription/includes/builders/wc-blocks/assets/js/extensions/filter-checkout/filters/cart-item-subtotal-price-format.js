@@ -7,6 +7,12 @@ document.addEventListener( "DOMContentLoaded", () => {
 
     const { registerCheckoutFilters } = window.wc.blocksCheckout;
 
+    const parseHtml = html => {
+      const tmp = document.createElement( 'DIV' );
+      tmp.innerHTML = html;
+      return tmp.innerText || '';
+    }
+
     /**
      * Change the cart item price adding the info about the subscription
      *
@@ -34,7 +40,7 @@ document.addEventListener( "DOMContentLoaded", () => {
           return value;
         }
 
-        return '<price/> '+ parse(ywsbsData.value);
+        return '<price/> '+ parseHtml(ywsbsData.value);
       },
     } );
   }

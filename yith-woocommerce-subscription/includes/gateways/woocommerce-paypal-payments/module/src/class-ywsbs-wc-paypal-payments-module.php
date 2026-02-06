@@ -83,7 +83,16 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
         add_filter(
             'option_woocommerce-ppcp-data-settings',
             function ( $value ) {
-                is_array( $value ) && $value['save_paypal_and_venmo'] = true;
+				if ( is_array( $value ) ) {
+					$value = array_merge(
+						$value,
+						[
+							'save_card_details' => true,
+							'save_paypal_and_venmo' => true,
+						]
+					);
+				}
+
                 return $value;
             },
             10,

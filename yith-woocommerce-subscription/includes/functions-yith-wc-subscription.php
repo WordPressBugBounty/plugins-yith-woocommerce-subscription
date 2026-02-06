@@ -746,7 +746,7 @@ if ( ! function_exists( 'ywsbs_subscription_order_type' ) ) {
 		}
 
 		if ( $is_a_renew && in_array( $subscription->get_id(), $order_subscriptions ) ) { // phpcs:ignore
-			$type = esc_html__( 'Renew Order', 'yith-woocommerce-subscription' );
+			$type = esc_html__( 'Renewal order', 'yith-woocommerce-subscription' );
 		}
 
 		return $type;

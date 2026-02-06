@@ -1,18 +1,18 @@
-# Copyright (C) 2024 YITH
+# Copyright (C) 2025 YITH
 # This file is distributed under the same license as the YITH WooCommerce Subscription package.
 msgid ""
 msgstr ""
-"Project-Id-Version: YITH WooCommerce Subscription 4.3.0\n"
+"Project-Id-Version: YITH WooCommerce Subscription 4.12.0\n"
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/yith-woocommerce-subscription\n"
-"POT-Creation-Date: 2024-12-20 14:38:06+00:00\n"
+"POT-Creation-Date: 2025-12-02 12:06:48+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"X-Generator: grunt-wp-i18n 1.0.3\n"
+"X-Generator: grunt-wp-i18n 1.0.4\n"
 
 #: includes/admin/class-ywsbs-product-post-type-admin.php:64
 #: includes/admin/class-ywsbs-subscription-list-table.php:84
@@ -380,11 +380,11 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-ywsbs-subscription-order.php:580
+#: includes/class-ywsbs-subscription-order.php:589
 msgid "Error 402: unable to create the order. Please try again."
 msgstr ""
 
-#: includes/class-ywsbs-subscription-order.php:662
+#: includes/class-ywsbs-subscription-order.php:671
 #. translators: placeholder subscription id.
 msgid ""
 "This order has been created to renew subscription <a href=\"%1$s\" "
@@ -444,7 +444,7 @@ msgstr ""
 msgid "Guest"
 msgstr ""
 
-#: includes/class-ywsbs-subscription.php:1164
+#: includes/class-ywsbs-subscription.php:1153
 #. translators: placeholder subscription number.
 msgid "This order has been cancelled because subscription %s has been cancelled"
 msgstr ""
@@ -580,7 +580,7 @@ msgid "Parent Order"
 msgstr ""
 
 #: includes/functions-yith-wc-subscription.php:749
-msgid "Renew Order"
+msgid "Renewal order"
 msgstr ""
 
 #: includes/functions-yith-wc-subscription.php:766
@@ -686,31 +686,45 @@ msgstr ""
 msgid "Order #%1$s has been marked as refunded - PayPal reason code: %2$s"
 msgstr ""
 
-#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-module.php:184
-#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/class-ywsbs-wc-paypal-payments-module.php:174
+#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-module.php:207
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.4.2/class-ywsbs-wc-paypal-payments-module.php:170
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.0/class-ywsbs-wc-paypal-payments-module.php:170
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.6/class-ywsbs-wc-paypal-payments-module.php:180
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.5/class-ywsbs-wc-paypal-payments-module.php:187
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.6/class-ywsbs-wc-paypal-payments-module.php:188
 #. translators: %1$s is the payment token Id, %2$s is the error message.
 msgid "Could not add token Id to subscription %1$s: %2$s"
 msgstr ""
 
-#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:244
+#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:262
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:241
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:263
 #. translators: %s stand for the order ID.
 msgid "Payment for order #%s already captured"
 msgstr ""
 
-#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:249
+#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:267
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:246
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:268
 #. translators: %s stand for the order ID.
 msgid "Capture payment for order #%s failed"
 msgstr ""
 
-#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:298
+#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:316
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:295
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:317
 msgid "Awaiting payment."
 msgstr ""
 
-#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:304
+#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:322
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:301
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:323
 msgid "Could not get the payment authorization."
 msgstr ""
 
-#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:306
+#: includes/gateways/woocommerce-paypal-payments/module/src/class-ywsbs-wc-paypal-payments-renewal-handler.php:324
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/2.9.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:303
+#: includes/gateways/woocommerce-paypal-payments/module/src/legacy/3.0.6/class-ywsbs-wc-paypal-payments-renewal-handler.php:325
 msgid ""
 "Payment provider declined the payment, please use a different payment "
 "method."
@@ -725,13 +739,13 @@ msgstr ""
 msgid "This order has been created to renew the subscription #%d"
 msgstr ""
 
-#: init.php:38
+#: init.php:40
 msgid ""
 "You can't activate the free version of YITH WooCommerce Subscription while "
 "you are using the premium one."
 msgstr ""
 
-#: init.php:89
+#: init.php:92
 msgid ""
 "YITH WooCommerce Subscription is enabled but not effective. It requires "
 "WooCommerce in order to work."
@@ -1314,7 +1328,7 @@ msgctxt "do not translate the text inside the brackets"
 msgid "Subscription total for {{sub-time}}: {{sub-total}}"
 msgstr ""
 
-#: includes/class-ywsbs-subscription-order.php:445
+#: includes/class-ywsbs-subscription-order.php:454
 #. translators: Placeholders: url of subscription, subscription number.
 msgctxt "Placeholders: url of subscription, ID subscription"
 msgid ""

@@ -593,10 +593,9 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 			'vault_id' => $token,
 		);
 
-		$subscriptions = $this->get_subscription_from_renew_order( $wc_order );
-		$subscription  = end( $subscriptions );
+		$subscription = $this->get_subscription_from_renew_order( $wc_order );
 		if ( $subscription ) {
-			$transaction = $this->subscription_helper->previous_transaction( $subscription );
+			$transaction = $this->subscription_helper->get_previous_transaction( $subscription );
 			if ( $transaction ) {
 				$properties['stored_credentials'] = array(
 					'payment_initiator'              => 'MERCHANT',
