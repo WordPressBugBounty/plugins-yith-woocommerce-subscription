@@ -5,7 +5,7 @@ Tags: recurring billing, subscription billing, subscription box, Subscription Ma
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 4.13.0
+Stable tag: 4.14.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+
+= 4.14.0 - Released on 05 March 2026 =
+* Fix: correctly handle the order cancel/trash/delete action for related subscriptions
+* Fix: subscription status badge color
+* Dev: removed unused attribute from the YWSBS_Subscription class
 
 = 4.13.0 - Released on 28 January 2026 =
 * New: support for WooCommerce 10.5

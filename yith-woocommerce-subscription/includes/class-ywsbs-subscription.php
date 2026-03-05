@@ -95,13 +95,6 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 		public $id = 0;
 
 		/**
-		 * Price time option
-		 *
-		 * @var string
-		 */
-		public $price_time_option;
-
-		/**
 		 * Variation id
 		 *
 		 * @var int
@@ -1136,6 +1129,29 @@ if ( ! class_exists( 'YWSBS_Subscription' ) ) {
 			do_action( 'ywsbs_subscription_deleted', $this->id );
 		}
 
+		/**
+		 * Trash the subscription
+		 *
+		 * @since 2.0.0
+		 */
+		public function trash() {
+			// Cancel the subscription before trash.
+			$this->cancel();
+
+			wp_trash_post( $this->id );
+			do_action( 'ywsbs_subscription_trashed', $this->id );
+		}
+
+
+		/**
+		 * Untrash the subscription
+		 *
+		 * @since 2.0.0
+		 */
+		public function untrash() {
+			wp_untrash_post( $this->id );
+			do_action( 'ywsbs_subscription_untrashed', $this->id );
+		}
 
 		/**
 		 * Cancel the subscription

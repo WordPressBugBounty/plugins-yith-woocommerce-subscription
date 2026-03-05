@@ -829,9 +829,8 @@ th.status-td.sorting_disabled {
 }
 #subscription-data h2 span.status, .status.column-status .status.active{
     color: #ffffff;
-    background-color: #b2ac00!important;
+    background-color: #b2ac00;
 }
-
 
 .yith-plugins_page_yith_woocommerce_subscription #wpbody{
     margin-top: 0;

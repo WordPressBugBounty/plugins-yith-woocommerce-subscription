@@ -54,10 +54,24 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 
 			add_filter( 'woocommerce_can_reduce_order_stock', array( $this, 'can_reduce_order_stock' ), 10, 2 );
 
-			if ( get_option( 'ywsbs_delete_subscription_order_cancelled', 'yes' ) === 'yes' ) {
-				add_action( 'woocommerce_order_status_cancelled', array( __CLASS__, 'trash_subscriptions' ), 10 );
+			// HPOS check.
+			if ( function_exists( 'yith_plugin_fw_is_wc_custom_orders_table_usage_enabled' ) && yith_plugin_fw_is_wc_custom_orders_table_usage_enabled() ) {
+				add_action( 'woocommerce_before_delete_order', array( $this, 'delete_subscriptions' ), 10, 1 );
+				add_action( 'woocommerce_trash_order', array( $this, 'trash_subscriptions' ), 10 );
+				add_action( 'woocommerce_untrash_order', array( $this, 'untrash_subscriptions' ), 10 );
 			} else {
-				add_action( 'woocommerce_order_status_cancelled', array( __CLASS__, 'cancel_subscriptions' ), 10 );
+				// When the order is deleted the subscription is deleted.
+				add_action( 'before_delete_post', array( $this, 'delete_subscriptions' ), 10 );
+				// When the order is trashed the subscription is trashed.
+				add_action( 'wp_trash_post', array( $this, 'trash_subscriptions' ), 10 );
+				// When the order is untrashed the subscription is untrashed.
+				add_action( 'untrashed_post', array( $this, 'untrash_subscriptions' ), 10 );
+			}
+
+			if ( get_option( 'ywsbs_delete_subscription_order_cancelled', 'yes' ) === 'yes' ) {
+				add_action( 'woocommerce_order_status_cancelled', array( $this, 'trash_subscriptions' ), 10 );
+			} else {
+				add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_subscriptions' ), 10 );
 			}
 		}
 
@@ -341,7 +355,6 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 			return $subscription_info;
 		}
 
-
 		/**
 		 * Check in the order if there's a subscription and create it
 		 *
@@ -473,7 +486,6 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 
 			do_action( 'ywcsb_after_calculate_totals', $order );
 		}
-
 
 		/**
 		 * After payment complete
@@ -778,75 +790,6 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 			return $result;
 		}
 
-
-		/**
-		 * Delete all subscription if the main order in deleted.
-		 *
-		 * @param   int $order_id  Order id.
-		 */
-		public static function delete_subscriptions( $order_id ) {
-			if ( 'shop_order' === get_post_type( $order_id ) ) {
-
-				$order = wc_get_order( $order_id );
-
-				if ( ! $order ) {
-					return;
-				}
-
-				$is_a_renew    = $order->get_meta( 'is_a_renew' );
-				$subscriptions = $order->get_meta( 'subscriptions' );
-
-				if ( empty( $subscriptions ) || 'yes' === $is_a_renew ) {
-					return;
-				}
-
-				foreach ( $subscriptions as $subscription_id ) {
-					$subscription = ywsbs_get_subscription( $subscription_id );
-					// check if the subscription exists.
-					if ( is_null( $subscription->post ) ) {
-						continue;
-					}
-
-					$subscription->delete();
-				}
-			}
-		}
-
-		/**
-		 * Trash all subscriptions if the main order in trashed.
-		 *
-		 * @param   int $order_id  Order id.
-		 *
-		 * @return void
-		 */
-		public static function trash_subscriptions( $order_id ) {
-			if ( 'shop_order' === get_post_type( $order_id ) ) {
-
-				$order = wc_get_order( $order_id );
-
-				if ( ! $order ) {
-					return;
-				}
-
-				$is_a_renew    = $order->get_meta( 'is_a_renew' );
-				$subscriptions = $order->get_meta( 'subscriptions' );
-
-				if ( empty( $subscriptions ) || 'yes' === $is_a_renew ) {
-					return;
-				}
-
-				foreach ( $subscriptions as $subscription_id ) {
-					$subscription = ywsbs_get_subscription( $subscription_id );
-					// check if the subscription exists.
-					if ( is_null( $subscription->post ) ) {
-						continue;
-					}
-
-					$subscription->delete();
-				}
-			}
-		}
-
 		/**
 		 * Overwrite chosen shipping method temp for calculate the subscription shipping
 		 *
@@ -856,6 +799,92 @@ if ( ! class_exists( 'YWSBS_Subscription_Order' ) ) {
 		 */
 		public function change_shipping_chosen_method_temp( $method ) {
 			return ! is_null( $this->subscription_shipping_method_temp ) ? $this->subscription_shipping_method_temp : $method;
+		}
+
+		/**
+		 * Delete all subscription if the main order in deleted.
+		 *
+		 * @param   int $order_id  Order id.
+		 */
+		public function delete_subscriptions( $order_id ) {
+			$this->handle_order_action( $order_id, 'delete' );
+		}
+
+		/**
+		 * Trash all subscriptions if the main order in trashed.
+		 *
+		 * @param   int $order_id  Order id.
+		 *
+		 * @return void
+		 */
+		public function trash_subscriptions( $order_id ) {
+			$this->handle_order_action( $order_id, 'trash' );
+		}
+
+		/**
+		 * Un-trash all subscriptions if the main order in untrashed.
+		 *
+		 * @param int $order_id Order id.
+		 */
+		public function untrash_subscriptions( $order_id ) {
+			$this->handle_order_action( $order_id, 'untrash' );
+		}
+
+		/**
+		 * Cancel all subscriptions if the main order in canceled.
+		 *
+		 * @param int $order_id Order id.
+		 */
+		public function cancel_subscriptions( $order_id ) {
+			$this->handle_order_action( $order_id, 'cancel' );
+		}
+
+
+		/**
+		 * Handle order canceled/trash/untrash/delete actions and change the subscription status as well
+		 *
+		 * @param int $order_id The order ID.
+		 * @param string $action The action to execute. Handled values are: cancel, delete, trash, untrash.
+		 * @return void
+		 */
+		protected function handle_order_action( $order_id, $action ) {
+			// Get order and double check it.
+			$order = wc_get_order( $order_id );
+			if ( ! $order || ! $order instanceof WC_Order || $order instanceof WC_Order_Refund ) {
+				return;
+			}
+
+			$is_a_renew    = $order->get_meta( 'is_a_renew' );
+			$subscriptions = $order->get_meta( 'subscriptions' );
+			if ( empty( $subscriptions ) || 'yes' === $is_a_renew ) {
+				return;
+			}
+
+			foreach ( $subscriptions as $subscription_id ) {
+				$subscription = ywsbs_get_subscription( $subscription_id );
+				// check if the subscription exists.
+				if ( is_null( $subscription->post ) ) {
+					continue;
+				}
+
+				switch ($action){
+					case 'cancel':
+						$subscription->cancel();
+						break;
+
+					case 'trash':
+						$subscription->trash();
+						break;
+
+					case 'untrash':
+						$subscription->untrash();
+						break;
+
+					case 'delete':
+						$subscription->delete();
+						break;
+				}
+			}
 		}
 	}
 }
