@@ -3,9 +3,9 @@
 Contributors: yithemes
 Tags: recurring billing, subscription billing, subscription box, Subscription Management, subscriptions
 Requires PHP: 7.4
-Requires at least: 6.7
-Tested up to: 6.9
-Stable tag: 4.15.0
+Requires at least: 6.8
+Tested up to: 7.0
+Stable tag: 4.16.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,6 +113,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+
+= 4.16.0 - Released on 09 April 2026 =
+* New: support for WordPress 7.0
+* New: support for WooCommerce 10.7
+* New: support for WooCommerce PayPal Payments 4.0.2
+* Update: YITH plugin framework
 
 = 4.15.0 - Released on 10 March 2026 =
 * New: support for WooCommerce 10.6

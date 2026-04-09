@@ -7,13 +7,12 @@
 
 declare( strict_types = 1 );
 
-
 use WooCommerce\PayPalCommerce\Button\Helper\DisabledFundingSources;
-use WooCommerce\PayPalCommerce\Settings\Data\SettingsProvider;
 use WooCommerce\PayPalCommerce\WcGateway\Exception\NotFoundException;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayPalGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Helper\CardPaymentsConfiguration;
+use WooCommerce\PayPalCommerce\WcGateway\Settings\Settings;
 
 /**
  * Class SubscriptionModule
@@ -30,12 +29,12 @@ class YWSBS_WC_PayPal_Disabled_Sources extends DisabledFundingSources {
 	/**
 	 * DisabledFundingSources constructor.
 	 *
-	 * @param SettingsProvider          $settings            The settings.
+	 * @param Settings                  $settings            The settings.
 	 * @param array                     $all_funding_sources All existing funding sources.
 	 * @param CardPaymentsConfiguration $dcc_configuration   DCC gateway configuration.
      * @param  string  $merchant_country  Merchant country.
 	 */
-	public function __construct( SettingsProvider $settings, array $all_funding_sources, CardPaymentsConfiguration $dcc_configuration, string $merchant_country ) {
+	public function __construct( Settings $settings, array $all_funding_sources, CardPaymentsConfiguration $dcc_configuration, string $merchant_country ) {
 		$this->funding_sources = $all_funding_sources;
 		parent::__construct( $settings, $all_funding_sources, $dcc_configuration, $merchant_country );
 	}
