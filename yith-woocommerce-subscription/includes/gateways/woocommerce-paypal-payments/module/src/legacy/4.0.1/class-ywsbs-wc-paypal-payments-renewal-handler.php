@@ -18,12 +18,13 @@ use WooCommerce\PayPalCommerce\ApiClient\Exception\PayPalApiException;
 use WooCommerce\PayPalCommerce\ApiClient\Factory\PayerFactory;
 use WooCommerce\PayPalCommerce\ApiClient\Factory\PurchaseUnitFactory;
 use WooCommerce\PayPalCommerce\ApiClient\Factory\ShippingPreferenceFactory;
+use WooCommerce\PayPalCommerce\Vaulting\WooCommercePaymentTokens;
 use WooCommerce\PayPalCommerce\WcGateway\Helper\Environment;
+use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenApplePay;
+use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenPayPal;
+use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenRepository;
 use WooCommerce\PayPalCommerce\Vendor\Psr\Log\LoggerInterface;
-use WooCommerce\PayPalCommerce\WcPaymentTokens\WooCommercePaymentTokens;
-use WooCommerce\PayPalCommerce\WcPaymentTokens\PaymentTokenApplePay;
-use WooCommerce\PayPalCommerce\WcPaymentTokens\PaymentTokenPayPal;
-use WooCommerce\PayPalCommerce\WcPaymentTokens\PaymentTokenVenmo;
+use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenVenmo;
 use WooCommerce\PayPalCommerce\WcGateway\Exception\NotFoundException;
 use WooCommerce\PayPalCommerce\WcGateway\FundingSource\FundingSourceRenderer;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
@@ -50,6 +51,13 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 	 * @var LoggerInterface
 	 */
 	private $logger;
+
+	/**
+	 * The payment token repository.
+	 *
+	 * @var PaymentTokenRepository
+	 */
+	private $repository;
 
 	/**
 	 * The order endpoint.
@@ -136,16 +144,10 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 	private $wc_payment_tokens;
 
 	/**
-	 * Legacy vault v2 payments tokens endpoint.
-	 *
-	 * @var YWSBS_WC_PayPal_Payments_Token_Endpoint
-	 */
-	private $legacy_token_endpoint;
-
-	/**
 	 * RenewalHandler constructor.
 	 *
 	 * @param LoggerInterface                 $logger                           The logger.
+	 * @param PaymentTokenRepository          $repository                       The payment token repository.
 	 * @param OrderEndpoint                   $order_endpoint                   The order endpoint.
 	 * @param PurchaseUnitFactory             $purchase_unit_factory            The purchase unit factory.
 	 * @param ShippingPreferenceFactory       $shipping_preference_factory      The shipping_preference factory.
@@ -158,10 +160,10 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 	 * @param YWSBS_WC_PayPal_Payments_Helper $subscription_helper              Subscription helper.
 	 * @param PaymentTokensEndpoint           $payment_tokens_endpoint          Payment tokens endpoint.
 	 * @param WooCommercePaymentTokens        $wc_payment_tokens                WooCommerce payments tokens factory.
-	 * @param YWSBS_WC_PayPal_Payments_Token_Endpoint   $legacy_token_endpoint            Legacy vault v2 tokens endpoint.
 	 */
 	public function __construct(
 		LoggerInterface $logger,
+		PaymentTokenRepository $repository,
 		OrderEndpoint $order_endpoint,
 		PurchaseUnitFactory $purchase_unit_factory,
 		ShippingPreferenceFactory $shipping_preference_factory,
@@ -173,11 +175,11 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		RealTimeAccountUpdaterHelper $real_time_account_updater_helper,
 		YWSBS_WC_PayPal_Payments_Helper $subscription_helper,
 		PaymentTokensEndpoint $payment_tokens_endpoint,
-		WooCommercePaymentTokens $wc_payment_tokens,
-		YWSBS_WC_PayPal_Payments_Token_Endpoint $legacy_token_endpoint
+		WooCommercePaymentTokens $wc_payment_tokens
 	) {
 
 		$this->logger                           = $logger;
+		$this->repository                       = $repository;
 		$this->order_endpoint                   = $order_endpoint;
 		$this->purchase_unit_factory            = $purchase_unit_factory;
 		$this->shipping_preference_factory      = $shipping_preference_factory;
@@ -190,7 +192,6 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		$this->subscription_helper              = $subscription_helper;
 		$this->payment_tokens_endpoint          = $payment_tokens_endpoint;
 		$this->wc_payment_tokens                = $wc_payment_tokens;
-		$this->legacy_token_endpoint            = $legacy_token_endpoint;
 	}
 
 	/**
@@ -356,7 +357,6 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		$user_id  = (int) $wc_order->get_customer_id();
 		$customer = new \WC_Customer( $user_id );
 
-		$payment_method 	 = $wc_order->get_payment_method();
 		$purchase_unit       = $this->purchase_unit_factory->from_wc_order( $wc_order );
 		$payer               = $this->payer_factory->from_customer( $customer );
 		$shipping_preference = $this->shipping_preference_factory->from_state(
@@ -365,7 +365,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		);
 
 		// Vault v3.
-		if ( $payment_method === PayPalGateway::ID ) {
+		if ( $wc_order->get_payment_method() === PayPalGateway::ID ) {
 
 			$customer_tokens = $this->wc_payment_tokens->customer_tokens( $user_id );
 			$wc_tokens       = WC_Payment_Tokens::get_customer_tokens( $user_id, PayPalGateway::ID );
@@ -414,7 +414,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 			}
 		}
 
-		if ( $payment_method === CreditCardGateway::ID ) {
+		if ( $wc_order->get_payment_method() === CreditCardGateway::ID ) {
 
 			$customer_tokens = $this->wc_payment_tokens->customer_tokens( $user_id );
 			$wc_tokens       = WC_Payment_Tokens::get_customer_tokens( $user_id, CreditCardGateway::ID );
@@ -468,7 +468,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		// Vault v2.
 		$token = $this->get_token_for_customer( $customer, $wc_order );
 		if ( $token ) {
-			if ( $payment_method === CreditCardGateway::ID ) {
+			if ( $wc_order->get_payment_method() === CreditCardGateway::ID ) {
 				$payment_source = $this->card_payment_source( $token->id(), $wc_order );
 
 				return $this->order_endpoint->create(
@@ -481,7 +481,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 				);
 			}
 
-			if ( $payment_method === PayPalGateway::ID ) {
+			if ( $wc_order->get_payment_method() === PayPalGateway::ID ) {
 				return $this->order_endpoint->create(
 					array( $purchase_unit ),
 					$shipping_preference,
@@ -513,7 +513,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 			return $token;
 		}
 
-		$tokens = $this->legacy_token_endpoint->for_user( (int) $customer->get_id() );
+		$tokens = $this->repository->all_for_user_id( (int) $customer->get_id() );
 		if ( ! $tokens ) {
 			$error_message = sprintf(
 				'Payment failed. No payment tokens found for customer %d.',

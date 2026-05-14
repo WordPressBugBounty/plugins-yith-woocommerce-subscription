@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 use WooCommerce\PayPalCommerce\Vendor\Psr\Log\LoggerInterface;
 use WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException;
+use WooCommerce\PayPalCommerce\Vaulting\PaymentTokenRepository;
 use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ExecutableModule;
 use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ExtendingModule;
 use WooCommerce\PayPalCommerce\Vendor\Inpsyde\Modularity\Module\ModuleClassNameIdTrait;
@@ -17,6 +18,7 @@ use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayPalGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
 use WooCommerce\PayPalCommerce\Vendor\Psr\Container\ContainerInterface;
 use WooCommerce\PayPalCommerce\WcGateway\Processor\TransactionIdHandlingTrait;
+use WooCommerce\PayPalCommerce\WcGateway\Settings\Settings;
 
 /**
  * Class SubscriptionModule
@@ -33,14 +35,6 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 			'wc-subscriptions.helper'                => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Helper {
 				return new YWSBS_WC_PayPal_Payments_Helper();
 			},
-			'ywsbs-subscription.vaultv2.payment-token-endpoint' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Token_Endpoint {
-				return new YWSBS_WC_PayPal_Payments_Token_Endpoint(
-					$container->get( 'api.host' ),
-					$container->get( 'api.bearer' ),
-					$container->get( 'woocommerce.logger.woocommerce' ),
-					$container->get( 'api.repository.customer' )
-				);
-			},
 			'button.helper.disabled-funding-sources' => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Disabled_Sources {
 				return new YWSBS_WC_PayPal_Disabled_Sources(
 					$container->get( 'settings.settings-provider' ),
@@ -52,6 +46,7 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 			'ywsbs-subscription.renewal-handler'     => static function ( ContainerInterface $container ): YWSBS_WC_PayPal_Payments_Renewal_Handler {
 				return new YWSBS_WC_PayPal_Payments_Renewal_Handler(
 					$container->get( 'woocommerce.logger.woocommerce' ),
+					$container->get( 'vaulting.repository.payment-token' ),
 					$container->get( 'api.endpoint.order' ),
 					$container->get( 'api.factory.purchase-unit' ),
 					$container->get( 'api.factory.shipping-preference' ),
@@ -63,8 +58,7 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 					$container->get( 'wc-subscriptions.helpers.real-time-account-updater' ),
 					$container->get( 'wc-subscriptions.helper' ),
 					$container->get( 'api.endpoint.payment-tokens' ),
-					$container->get( 'wc-payment-tokens.wc-payment-tokens' ),
-					$container->get( 'ywsbs-subscription.vaultv2.payment-token-endpoint' )
+					$container->get( 'vaulting.wc-payment-tokens' )
 				);
 			},
 		);
@@ -151,10 +145,10 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 					return;
 				}
 
-				$payment_token_endpoint = $c->get( 'ywsbs-subscription.vaultv2.payment-token-endpoint' );
+				$payment_token_repository = $c->get( 'vaulting.repository.payment-token' );
 				$logger                   = $c->get( 'woocommerce.logger.woocommerce' );
 
-				$this->add_payment_token_id( $subscription, $payment_token_endpoint, $logger );
+				$this->add_payment_token_id( $subscription, $payment_token_repository, $logger );
 			}
 		);
 
@@ -197,12 +191,12 @@ class YWSBS_WC_PayPal_Payments_Module implements ServiceModule, ExtendingModule,
 	 * Adds Payment token ID to subscription.
 	 *
 	 * @param \YWSBS_Subscription    $subscription             The subscription.
-	 * @param YWSBS_WC_PayPal_Payments_Token_Endpoint $payment_token_endpoint   The payment token endpoint.
+	 * @param PaymentTokenRepository $payment_token_repository The payment repository.
 	 * @param LoggerInterface        $logger                   The logger.
 	 */
-	protected function add_payment_token_id( \YWSBS_Subscription $subscription, YWSBS_WC_PayPal_Payments_Token_Endpoint $payment_token_endpoint, LoggerInterface $logger ) {
+	protected function add_payment_token_id( \YWSBS_Subscription $subscription, PaymentTokenRepository $payment_token_repository, LoggerInterface $logger ) {
 		try {
-			$tokens = $payment_token_endpoint->for_user( $subscription->get_user_id() );
+			$tokens = $payment_token_repository->all_for_user_id( $subscription->get_user_id() );
 			if ( $tokens ) {
 				$latest_token_id = end( $tokens )->id() ? end( $tokens )->id() : '';
 				$subscription->set( 'payment_token_id', $latest_token_id );

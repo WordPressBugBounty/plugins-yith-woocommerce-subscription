@@ -47,6 +47,7 @@ class YWSBS_WC_PayPal_Payments_Integration {
 			'class-ywsbs-wc-paypal-payments-helper.php'  => 'YWSBS_WC_PayPal_Payments_Helper',
 			'class-ywsbs-wc-paypal-payments-renewal-handler.php' => 'YWSBS_WC_PayPal_Payments_Renewal_Handler',
 			'class-ywsbs-wc-paypal-payments-module.php'  => 'YWSBS_WC_PayPal_Payments_Module',
+			'class-ywsbs-wc-paypal-payments-token-endpoint.php' => 'YWSBS_WC_PayPal_Payments_Token_Endpoint',
 		);
 
 		// Conditionally load legacy files to grant backward compatibility.
