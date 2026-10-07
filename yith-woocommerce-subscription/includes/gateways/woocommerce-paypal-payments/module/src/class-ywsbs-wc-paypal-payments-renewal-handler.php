@@ -28,6 +28,7 @@ use WooCommerce\PayPalCommerce\WcGateway\Exception\NotFoundException;
 use WooCommerce\PayPalCommerce\WcGateway\FundingSource\FundingSourceRenderer;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\CreditCardGateway;
 use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayPalGateway;
+use WooCommerce\PayPalCommerce\WcGateway\Notice\AuthorizeOrderActionNotice;
 use WooCommerce\PayPalCommerce\WcGateway\Processor\AuthorizedPaymentsProcessor;
 use WooCommerce\PayPalCommerce\WcGateway\Processor\OrderMetaTrait;
 use WooCommerce\PayPalCommerce\WcGateway\Processor\PaymentsStatusHandlingTrait;
@@ -145,19 +146,19 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 	/**
 	 * RenewalHandler constructor.
 	 *
-	 * @param LoggerInterface                 $logger                           The logger.
-	 * @param OrderEndpoint                   $order_endpoint                   The order endpoint.
-	 * @param PurchaseUnitFactory             $purchase_unit_factory            The purchase unit factory.
-	 * @param ShippingPreferenceFactory       $shipping_preference_factory      The shipping_preference factory.
-	 * @param PayerFactory                    $payer_factory                    The payer factory.
-	 * @param Environment                     $environment                      The environment.
-	 * @param Settings                        $settings                         The Settings.
-	 * @param AuthorizedPaymentsProcessor     $authorized_payments_processor    The Authorized Payments Processor.
-	 * @param FundingSourceRenderer           $funding_source_renderer          The funding source renderer.
-	 * @param RealTimeAccountUpdaterHelper    $real_time_account_updater_helper Real Time Account Updater helper.
-	 * @param YWSBS_WC_PayPal_Payments_Helper $subscription_helper              Subscription helper.
-	 * @param PaymentTokensEndpoint           $payment_tokens_endpoint          Payment tokens endpoint.
-	 * @param WooCommercePaymentTokens        $wc_payment_tokens                WooCommerce payments tokens factory.
+	 * @param LoggerInterface               			$logger                           The logger.
+	 * @param OrderEndpoint                 			$order_endpoint                   The order endpoint.
+	 * @param PurchaseUnitFactory           			$purchase_unit_factory            The purchase unit factory.
+	 * @param ShippingPreferenceFactory     			$shipping_preference_factory      The shipping_preference factory.
+	 * @param PayerFactory                  			$payer_factory                    The payer factory.
+	 * @param Environment                   			$environment                      The environment.
+	 * @param Settings                      			$settings                         The Settings.
+	 * @param AuthorizedPaymentsProcessor   			$authorized_payments_processor    The Authorized Payments Processor.
+	 * @param FundingSourceRenderer         			$funding_source_renderer          The funding source renderer.
+	 * @param RealTimeAccountUpdaterHelper  			$real_time_account_updater_helper Real Time Account Updater helper.
+	 * @param YWSBS_WC_PayPal_Payments_Helper			$subscription_helper              Subscription helper.
+	 * @param PaymentTokensEndpoint         			$payment_tokens_endpoint          Payment tokens endpoint.
+	 * @param WooCommercePaymentTokens      			$wc_payment_tokens                WooCommerce payments tokens factory.
 	 * @param YWSBS_WC_PayPal_Payments_Token_Endpoint   $legacy_token_endpoint            Legacy vault v2 tokens endpoint.
 	 */
 	public function __construct(
@@ -202,11 +203,9 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		try {
 			$this->process_order( $wc_order );
 		} catch ( \Exception $exception ) {
-			$error = $exception->getMessage();
-			if ( is_a( $exception, PayPalApiException::class ) ) {
-				$error = $exception->get_details( $error );
-			}
+			$error = $this->renewal_error_message( $exception );
 
+			$this->clear_failed_authorization( $wc_order );
 			ywsbs_register_failed_payment( $wc_order, $error );
 
 			$error_message = sprintf(
@@ -256,10 +255,21 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 				return true;
 			}
 
-			if ( 'false' !== $renewal_order->get_meta( AuthorizedPaymentsProcessor::CAPTURED_META_KEY ) ) {
+			if ( 'true' === $renewal_order->get_meta( AuthorizedPaymentsProcessor::CAPTURED_META_KEY ) ) {
 				// translators: %s stand for the order ID.
 				throw new Exception( sprintf( __( 'Payment for order #%s already captured', 'yith-woocommerce-subscription' ), $renewal_order->get_id() ) );
 			}
+
+			if ( ! $this->has_pending_authorization( $renewal_order ) ) {
+				$this->process_order( $renewal_order );
+			}
+
+			if ( ! $this->has_pending_authorization( $renewal_order ) ) {
+				// translators: %s stand for the order ID.
+				throw new Exception( sprintf( __( 'Could not authorize payment for order #%s', 'yith-woocommerce-subscription' ), $renewal_order->get_id() ) );
+			}
+
+			add_filter( 'redirect_post_location', array( $this, 'remove_already_captured_notice' ), 99 );
 
 			if ( ! $this->authorized_payments_processor->capture_authorized_payment( $renewal_order ) ) {
 				// translators: %s stand for the order ID.
@@ -269,11 +279,75 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 			return true;
 
 		} catch ( Exception $e ) {
-			yith_subscription_log( sprintf( 'Cannot pay order #%s related to the subscription #%s: %s', $order_id, $subscription->id, $e->getMessage() ), 'subscription_payment' );
-			ywsbs_register_failed_payment( $renewal_order, 'Error: ' . $e->getMessage() );
+			$error = $this->renewal_error_message( $e );
+
+			$this->clear_failed_authorization( $renewal_order );
+			yith_subscription_log( sprintf( 'Cannot pay order #%s related to the subscription #%s: %s', $order_id, $subscription->id, $error ), 'subscription_payment' );
+			ywsbs_register_failed_payment( $renewal_order, 'Error: ' . $error );
 
 			return false;
 		}
+	}
+
+	/**
+	 * Remove the PayPal "Payment already captured" admin notice from the redirect URL.
+	 *
+	 * @param string $location The redirect location.
+	 * @return string
+	 */
+	public function remove_already_captured_notice( $location ) {
+		$query = array();
+		parse_str( (string) wp_parse_url( (string) $location, PHP_URL_QUERY ), $query );
+
+		if ( AuthorizeOrderActionNotice::ALREADY_CAPTURED === absint( $query[ AuthorizeOrderActionNotice::QUERY_PARAM ] ?? 0 ) ) {
+			$location = remove_query_arg( AuthorizeOrderActionNotice::QUERY_PARAM, $location );
+		}
+
+		return $location;
+	}
+
+	/**
+	 * Whether the renewal order has a PayPal authorization waiting to be captured.
+	 *
+	 * @param \WC_Order $wc_order The WooCommerce order.
+	 * @return bool
+	 */
+	private function has_pending_authorization( \WC_Order $wc_order ): bool {
+		$captured = $wc_order->get_meta( AuthorizedPaymentsProcessor::CAPTURED_META_KEY );
+		$order_id = $wc_order->get_meta( PayPalGateway::ORDER_ID_META_KEY );
+
+		return 'false' === $captured && '' !== (string) $order_id;
+	}
+
+	/**
+	 * Drop a failed PayPal authorization so the next attempt can create a new one.
+	 *
+	 * @param \WC_Order $wc_order The WooCommerce order.
+	 * @return void
+	 */
+	private function clear_failed_authorization( \WC_Order $wc_order ): void {
+		if ( 'true' === $wc_order->get_meta( AuthorizedPaymentsProcessor::CAPTURED_META_KEY ) ) {
+			return;
+		}
+
+		$wc_order->delete_meta_data( AuthorizedPaymentsProcessor::CAPTURED_META_KEY );
+		$wc_order->delete_meta_data( PayPalGateway::ORDER_ID_META_KEY );
+		$wc_order->save();
+	}
+
+	/**
+	 * Readable message for a renewal failure.
+	 *
+	 * @param \Exception $exception The thrown error.
+	 * @return string
+	 */
+	private function renewal_error_message( \Exception $exception ): string {
+		$error = $exception->getMessage();
+		if ( is_a( $exception, PayPalApiException::class ) ) {
+			$error = $exception->get_details( $error );
+		}
+
+		return $error;
 	}
 
 	/**
@@ -555,7 +629,7 @@ class YWSBS_WC_PayPal_Payments_Renewal_Handler {
 		$this->add_paypal_meta( $wc_order, $order, $this->environment );
 
 		if ( $order->intent() === 'AUTHORIZE' ) {
-			$order = $this->order_endpoint->authorize( $order );
+			// No authorize call needed - vault tokens auto-authorize during order creation.
 			$wc_order->update_meta_data( AuthorizedPaymentsProcessor::CAPTURED_META_KEY, 'false' );
 		}
 
